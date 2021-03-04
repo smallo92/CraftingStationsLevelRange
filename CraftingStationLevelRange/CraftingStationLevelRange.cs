@@ -3,13 +3,12 @@ using BepInEx.Logging;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
 namespace CraftingStationLevelRange
 {
-    [BepInPlugin("smallo.mods.craftingstationlevelrange", "Crafting Station Level Range", "1.1")]
+    [BepInPlugin("smallo.mods.craftingstationlevelrange", "Crafting Station Level Range", "1.3.0")]
     [HarmonyPatch]
     class CraftingStationLevelRangePlugin : BaseUnityPlugin
     {
@@ -41,48 +40,26 @@ namespace CraftingStationLevelRange
         [HarmonyPatch(typeof(Player), "InPlaceMode")]
         public static void LogStations(Player __instance)
         {
-            if (__instance.GetRightItem() != null)
+            if (__instance.GetRightItem() == null) return;
+            if (__instance.GetRightItem().m_shared.m_name == "$item_hammer")
             {
-                string currentWeapon = __instance.GetRightItem().m_shared.m_name;
-                if (currentWeapon == "$item_hammer")
+                Vector3 playerPos = __instance.transform.position;
+                foreach (CraftingStation station in CraftingStation.m_allStations)
                 {
-                    Vector3 playerPos = __instance.transform.position;
-                    List<CraftingStation> allStations = new List<CraftingStation>();
-                    CraftingStation.FindStationsInRange("$piece_workbench", playerPos, (float) stationSearchRange.Value, allStations);
-                    CraftingStation.FindStationsInRange("$piece_forge", playerPos, (float) stationSearchRange.Value, allStations);
-                    CraftingStation.FindStationsInRange("$piece_stonecutter", playerPos, (float) stationSearchRange.Value, allStations);
-                    CraftingStation.FindStationsInRange("$piece_artisanstation", playerPos, (float) stationSearchRange.Value, allStations);
+                    int workbenchLevel = station.GetLevel();
 
-                    foreach (CraftingStation station in allStations)
+                    if (workbenchLevel > 1)
                     {
-                        int workbenchLevel = station.GetLevel();
-
-                        if (workbenchLevel > 1)
-                        {
-                            if (station.m_name == "$piece_workbench" || station.m_name == "$piece_forge")
-                            {
-                                int newRange = stationDefaultRange.Value + (stationAmountIncrease.Value * (workbenchLevel - 1));
-                                ChangeStationRange(station, newRange);
-                            }
-                        } else
-                        {
-                            if (parentInheritance.Value)
-                            {
-                                if (station.m_name == "$piece_stonecutter")
-                                {
-                                    ChangeChildStationRange(station, playerPos);
-                                }
-                                else if (station.m_name == "$piece_artisanstation")
-                                {
-                                    ChangeChildStationRange(station, playerPos);
-                                }
-                            }
-                            if (station.m_name == "$piece_workbench" || station.m_name == "$piece_forge")
-                            {
-                                ChangeStationRange(station, stationDefaultRange.Value);
-                            }
-                        }
+                        int newRange = stationDefaultRange.Value + (stationAmountIncrease.Value * (workbenchLevel - 1));
+                        ChangeStationRange(station, newRange);
+                        return;
                     }
+                    if (parentInheritance.Value)
+                    {
+                        if (station.m_name == "$piece_stonecutter") ChangeChildStationRange(station, playerPos);
+                        if (station.m_name == "$piece_artisanstation") ChangeChildStationRange(station, playerPos);
+                    }
+                    if (station.m_name == "$piece_workbench" || station.m_name == "$piece_forge") ChangeStationRange(station, stationDefaultRange.Value);
                 }
             }
         }
@@ -90,12 +67,12 @@ namespace CraftingStationLevelRange
         public static (bool, CraftingStation) IsParentWorkbenchInRange(CraftingStation station, string workbenchType, Vector3 playerPos, float searchRange)
         {
             CraftingStation closestStation = CraftingStation.FindClosestStationInRange(workbenchType, playerPos, searchRange);
+            if (closestStation == null) return (false, closestStation);
+
             Vector2 closestStationVector = new Vector2(closestStation.transform.position.x, closestStation.transform.position.z);
             Vector2 stationVector = new Vector2(station.transform.position.x, station.transform.position.z);
-            if (Vector2.Distance(closestStationVector, stationVector) <= closestStation.m_rangeBuild)
-            {
-                return (true, closestStation);
-            }
+
+            if (Vector2.Distance(closestStationVector, stationVector) <= closestStation.m_rangeBuild) return (true, closestStation);
             return (false, closestStation);
         }
 
@@ -114,15 +91,14 @@ namespace CraftingStationLevelRange
         public static void ChangeChildStationRange(CraftingStation station, Vector3 playerPos)
         {
             (bool isStationInRange, CraftingStation closestStation) = IsParentWorkbenchInRange(station, "$piece_workbench", playerPos, (float) stationSearchRange.Value);
+            if (!isStationInRange) ChangeStationRange(station, stationDefaultRange.Value);
             if (isStationInRange && closestStation.GetLevel() > 1)
             {
                 float newRange = stationDefaultRange.Value + (((float) stationAmountIncrease.Value * (closestStation.GetLevel() - 1) * (float) inheritanceAmount.Value));
                 ChangeStationRange(station, newRange);
+                return;
             }
-            else if (isStationInRange && closestStation.GetLevel() == 1)
-            {
-                ChangeStationRange(station, stationDefaultRange.Value);
-            }
+            if (isStationInRange && closestStation.GetLevel() == 1) ChangeStationRange(station, stationDefaultRange.Value);
         }
     }
 }
