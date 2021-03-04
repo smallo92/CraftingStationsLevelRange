@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace CraftingStationLevelRange
 {
-    [BepInPlugin("smallo.mods.craftingstationlevelrange", "Crafting Station Level Range", "1.3.0")]
+    [BepInPlugin("smallo.mods.craftingstationlevelrange", "Crafting Station Level Range", "1.4.0")]
     [HarmonyPatch]
     class CraftingStationLevelRangePlugin : BaseUnityPlugin
     {
@@ -46,18 +46,17 @@ namespace CraftingStationLevelRange
                 Vector3 playerPos = __instance.transform.position;
                 foreach (CraftingStation station in CraftingStation.m_allStations)
                 {
-                    int workbenchLevel = station.GetLevel();
+                    int stationLevel = station.GetLevel();
 
-                    if (workbenchLevel > 1)
+                    if (stationLevel > 1)
                     {
-                        int newRange = stationDefaultRange.Value + (stationAmountIncrease.Value * (workbenchLevel - 1));
+                        int newRange = stationDefaultRange.Value + (stationAmountIncrease.Value * (stationLevel - 1));
                         ChangeStationRange(station, newRange);
-                        return;
+                        continue;
                     }
                     if (parentInheritance.Value)
                     {
-                        if (station.m_name == "$piece_stonecutter") ChangeChildStationRange(station, playerPos);
-                        if (station.m_name == "$piece_artisanstation") ChangeChildStationRange(station, playerPos);
+                        if (station.m_name == "$piece_stonecutter" || station.m_name == "$piece_artisanstation") ChangeChildStationRange(station, playerPos);
                     }
                     if (station.m_name == "$piece_workbench" || station.m_name == "$piece_forge") ChangeStationRange(station, stationDefaultRange.Value);
                 }
@@ -78,14 +77,13 @@ namespace CraftingStationLevelRange
 
         public static void ChangeStationRange(CraftingStation station, float newRange)
         {
-            if (station.m_rangeBuild != newRange)
-            {
-                station.m_rangeBuild = newRange;
-                station.m_areaMarker.GetComponent<CircleProjector>().m_radius = newRange;
-                station.m_areaMarker.GetComponent<CircleProjector>().m_nrOfSegments = (int)Math.Ceiling(Math.Max(5f, 4f * newRange));
+            if (station.m_rangeBuild == newRange) return;
+            CraftingStation netStation = station.GetComponent<ZNetView>().GetComponent<CraftingStation>();
+            netStation.m_rangeBuild = newRange;
+            netStation.m_areaMarker.GetComponent<CircleProjector>().m_radius = newRange;
+            netStation.m_areaMarker.GetComponent<CircleProjector>().m_nrOfSegments = (int)Math.Ceiling(Math.Max(5f, 4f * newRange));
 
-                logger.LogInfo($"{station.m_name} ({station.GetInstanceID()}) set to {newRange} range");
-            }
+            logger.LogInfo($"{station.m_name} ({station.GetInstanceID()}) set to {newRange} range");
         }
 
         public static void ChangeChildStationRange(CraftingStation station, Vector3 playerPos)

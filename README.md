@@ -19,6 +19,10 @@ If you have any suggestions, feel free to let me know!
 
 ## Changelog
 
+#### v1.4.0;
+* Fixed an error when you had 2 parent benches (Workbench or Forge) in range it would only upgrade 1 of the 2
+* Made it change the size of the net version of the staiton which means when 1 player upgrades the bench size it will do it for all players (MP friendly obviously)
+
 #### v1.3.0;
 * Fixed an error if you deleted the work bench while it was trying to apply the new distance
 * Made it so child benches (Stonecutter or Artisans Table) go back to the default range when the parent benches (Workbench or Forge) are destroyed
