@@ -19,6 +19,11 @@ If you have any suggestions, feel free to let me know!
 
 ## Changelog
 
+#### v1.3.0;
+* Fixed an error if you deleted the work bench while it was trying to apply the new distance
+* Made it so child benches (Stonecutter or Artisans Table) go back to the default range when the parent benches (Workbench or Forge) are destroyed
+* Code optimisations
+
 #### v1.2.1;
 * Only Readme updates, my bad.
 
