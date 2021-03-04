@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace CraftingStationLevelRange
 {
-    [BepInPlugin("smallo.mods.craftingstationlevelrange", "Crafting Station Level Range", "1.4.0")]
+    [BepInPlugin("smallo.mods.craftingstationlevelrange", "Crafting Station Level Range", "1.4.1")]
     [HarmonyPatch]
     class CraftingStationLevelRangePlugin : BaseUnityPlugin
     {
@@ -56,16 +56,16 @@ namespace CraftingStationLevelRange
                     }
                     if (parentInheritance.Value)
                     {
-                        if (station.m_name == "$piece_stonecutter" || station.m_name == "$piece_artisanstation") ChangeChildStationRange(station, playerPos);
+                        if (station.m_name == "$piece_stonecutter" || station.m_name == "$piece_artisanstation") ChangeChildStationRange(station);
                     }
                     if (station.m_name == "$piece_workbench" || station.m_name == "$piece_forge") ChangeStationRange(station, stationDefaultRange.Value);
                 }
             }
         }
 
-        public static (bool, CraftingStation) IsParentWorkbenchInRange(CraftingStation station, string workbenchType, Vector3 playerPos, float searchRange)
+        public static (bool, CraftingStation) IsParentWorkbenchInRange(CraftingStation station, string workbenchType, float searchRange)
         {
-            CraftingStation closestStation = CraftingStation.FindClosestStationInRange(workbenchType, playerPos, searchRange);
+            CraftingStation closestStation = CraftingStation.FindClosestStationInRange(workbenchType, station.transform.position, searchRange);
             if (closestStation == null) return (false, closestStation);
 
             Vector2 closestStationVector = new Vector2(closestStation.transform.position.x, closestStation.transform.position.z);
@@ -78,6 +78,7 @@ namespace CraftingStationLevelRange
         public static void ChangeStationRange(CraftingStation station, float newRange)
         {
             if (station.m_rangeBuild == newRange) return;
+
             CraftingStation netStation = station.GetComponent<ZNetView>().GetComponent<CraftingStation>();
             netStation.m_rangeBuild = newRange;
             netStation.m_areaMarker.GetComponent<CircleProjector>().m_radius = newRange;
@@ -86,9 +87,9 @@ namespace CraftingStationLevelRange
             logger.LogInfo($"{station.m_name} ({station.GetInstanceID()}) set to {newRange} range");
         }
 
-        public static void ChangeChildStationRange(CraftingStation station, Vector3 playerPos)
+        public static void ChangeChildStationRange(CraftingStation station)
         {
-            (bool isStationInRange, CraftingStation closestStation) = IsParentWorkbenchInRange(station, "$piece_workbench", playerPos, (float) stationSearchRange.Value);
+            (bool isStationInRange, CraftingStation closestStation) = IsParentWorkbenchInRange(station, "$piece_workbench", (float) stationSearchRange.Value);
             if (!isStationInRange) ChangeStationRange(station, stationDefaultRange.Value);
             if (isStationInRange && closestStation.GetLevel() > 1)
             {

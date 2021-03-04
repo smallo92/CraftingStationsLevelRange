@@ -19,6 +19,9 @@ If you have any suggestions, feel free to let me know!
 
 ## Changelog
 
+#### v1.4.1;
+* Fixed an issue with getting the closest bench, was basing it on the player position instead of the benches position, this would cause child benches (Stonecutter or Artisans Table) range to break sometimes
+
 #### v1.4.0;
 * Fixed an error when you had 2 parent benches (Workbench or Forge) in range it would only upgrade 1 of the 2
 * Made it change the size of the net version of the staiton which means when 1 player upgrades the bench size it will do it for all players (MP friendly obviously)
