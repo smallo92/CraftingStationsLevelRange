@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace CraftingStationLevelRange
 {
-    [BepInPlugin("smallo.mods.craftingstationlevelrange", "Crafting Station Level Range", "1.4.1")]
+    [BepInPlugin("smallo.mods.craftingstationlevelrange", "Crafting Station Level Range", "1.5.0")]
     [HarmonyPatch]
     class CraftingStationLevelRangePlugin : BaseUnityPlugin
     {
@@ -31,35 +31,30 @@ namespace CraftingStationLevelRange
             parentInheritance = Config.Bind("4 - Range Inheritance", "ParentInheritance", true, "Allow secondary Crafting Stations (Stonecutter or Artisans Table) to inherit the range of their parent stations (Workbench or Forge) if they are within range");
             inheritanceAmount = Config.Bind("4 - Range Inheritance", "InheritanceAmount", 1.0, "Amount to multiply the inheritance value by. You may want the secondary station to have a lesser value. (Example: 0.5 would be 50% the amount of the IncreaseAmount variable)");
 
-            if (!enableMod.Value) { return; }
+            if (!enableMod.Value) return;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Player), "InPlaceMode")]
-        public static void LogStations(Player __instance)
+        [HarmonyPatch(typeof(CraftingStation), "UpdateKnownStationsInRange")]
+        public static void LogStations(Player player)
         {
-            if (__instance.GetRightItem() == null) return;
-            if (__instance.GetRightItem().m_shared.m_name == "$item_hammer")
+            foreach (CraftingStation station in CraftingStation.m_allStations)
             {
-                Vector3 playerPos = __instance.transform.position;
-                foreach (CraftingStation station in CraftingStation.m_allStations)
-                {
-                    int stationLevel = station.GetLevel();
+                int stationLevel = station.GetLevel();
 
-                    if (stationLevel > 1)
-                    {
-                        int newRange = stationDefaultRange.Value + (stationAmountIncrease.Value * (stationLevel - 1));
-                        ChangeStationRange(station, newRange);
-                        continue;
-                    }
-                    if (parentInheritance.Value)
-                    {
-                        if (station.m_name == "$piece_stonecutter" || station.m_name == "$piece_artisanstation") ChangeChildStationRange(station);
-                    }
-                    if (station.m_name == "$piece_workbench" || station.m_name == "$piece_forge") ChangeStationRange(station, stationDefaultRange.Value);
+                if (stationLevel > 1)
+                {
+                    int newRange = stationDefaultRange.Value + (stationAmountIncrease.Value * (stationLevel - 1));
+                    ChangeStationRange(station, newRange);
+                    continue;
                 }
+                if (parentInheritance.Value)
+                {
+                    if (station.m_name == "$piece_stonecutter" || station.m_name == "$piece_artisanstation") ChangeChildStationRange(station);
+                }
+                if (station.m_name == "$piece_workbench" || station.m_name == "$piece_forge") ChangeStationRange(station, stationDefaultRange.Value);
             }
         }
 

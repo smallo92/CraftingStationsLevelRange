@@ -19,6 +19,9 @@ If you have any suggestions, feel free to let me know!
 
 ## Changelog
 
+#### v1.5.0;
+* Changed the event that's used to change the station size, this event doesn't require any specific tools to be equipped.
+
 #### v1.4.1;
 * Fixed an issue with getting the closest bench, was basing it on the player position instead of the benches position, this would cause child benches (Stonecutter or Artisans Table) range to break sometimes
 
