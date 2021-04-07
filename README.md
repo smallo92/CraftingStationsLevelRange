@@ -45,3 +45,8 @@ If you have any suggestions, feel free to let me know!
 
 ![Default Range](https://fivem.fail/gta5/Audio/PrepareSynchronizedAudioEventForScene/Sb2r7Gui2W.png)  
 ![Level 2 Range](https://fivem.fail/gta5/Money/N_0x226c284c830d0ca8/alMAdiz7Gd.png)
+
+[Discord Support](https://discord.gg/pTGSu8R7DW)
+
+## Affiliate Link
+<a href="https://zap-hosting.com/a/3b7ec5e8e178b1225b63fbeced07c07052e0425b"><img src="https://zap-hosting.com/interface/download/images.php?type=affiliate&id=99492" alt="ZAP-Hosting Gameserver and Webhosting"></a>
